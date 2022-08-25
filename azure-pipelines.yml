@@ -1,0 +1,40 @@
+# Docker
+# Build and push an image to Azure Container Registry
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+#- main
+- none
+
+resources:
+- repo: self
+
+variables:
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: '24f94c82-d682-446b-ac68-15b4619f051f'
+  imageRepository: 'kafka'
+  containerRegistry: 'scrumbleacr.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Azure Container Registry'
+        azureSubscription: 'Azure subscription 1 (d1bfd113-8907-4797-bd97-580e21cf4aaa)'
+        azureContainerRegistry: '{"loginServer":"scrumbleacr.azurecr.io", "id" : "/subscriptions/d1bfd113-8907-4797-bd97-580e21cf4aaa/resourceGroups/scrumble-rg/providers/Microsoft.ContainerRegistry/registries/scrumbleacr"}'
+        dockerComposeFile: '**/docker-compose.yml'
+        action: 'Run a Docker Compose command'
+        dockerComposeCommand: 'docekr compose up'
+      
